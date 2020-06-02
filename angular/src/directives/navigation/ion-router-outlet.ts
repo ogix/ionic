@@ -74,7 +74,7 @@ export class IonRouterOutlet implements OnDestroy, OnInit {
   ) {
     this.nativeEl = elementRef.nativeElement;
     this.name = name || PRIMARY_OUTLET;
-    this.tabsPrefix = tabs === 'true' ? getUrl(router, activatedRoute) : undefined;
+    this.tabsPrefix = tabs === 'true' ? '/' : undefined;
     this.stackCtrl = new StackController(this.tabsPrefix, this.nativeEl, router, navCtrl, zone, commonLocation);
     parentContexts.onChildOutletCreated(this.name, this as any);
   }
