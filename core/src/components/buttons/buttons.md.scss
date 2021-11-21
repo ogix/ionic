@@ -27,7 +27,7 @@
 // Material Design Toolbar w/ Color: Default Buttons
 // --------------------------------------------------
 
-:host-context(.ion-color)::slotted(*) .button {
+:host-context(.ion-color)::slotted(*) .ion-button {
   --color: initial;
   --color-focused: #{current-color(contrast)};
   --color-hover: #{current-color(contrast)};
@@ -68,7 +68,7 @@
 }
 
 
-::slotted(*) .button {
+::slotted(*) .ion-button {
   --background-hover: currentColor;
 }
 

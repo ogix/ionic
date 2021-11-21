@@ -25,7 +25,7 @@
 // iOS Toolbar with Color: Default Buttons
 // --------------------------------------------------
 
-:host-context(.ion-color)::slotted(*) .button {
+:host-context(.ion-color)::slotted(*) .ion-button {
   --color: initial;
   --border-color: initial;
   --background-focused: #{current-color(contrast)};
