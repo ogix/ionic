@@ -19,7 +19,7 @@ export class Spinner implements ComponentInterface {
    * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
    * For more information on colors, see [theming](/docs/theming/basics).
    */
-  @Prop() color?: Color;
+  @Prop({ reflect: true }) color?: Color;
 
   /**
    * Duration of the spinner animation in milliseconds. The default varies based on the spinner.
@@ -67,12 +67,11 @@ export class Spinner implements ComponentInterface {
 
     return (
       <Host
-        class={{
-          ...createColorClasses(self.color),
+        class={createColorClasses(self.color, {
           [mode]: true,
           [`spinner-${spinnerName}`]: true,
           'spinner-paused': !!self.paused || config.getBoolean('_testing')
-        }}
+        })}
         role="progressbar"
         style={spinner.elmDuration ? { animationDuration: duration + 'ms' } : {}}
       >

@@ -10,9 +10,15 @@ import { iosEnterAnimation } from './animations/ios.enter';
 import { iosLeaveAnimation } from './animations/ios.leave';
 import { mdEnterAnimation } from './animations/md.enter';
 import { mdLeaveAnimation } from './animations/md.leave';
+import { ToastAttributes } from './toast-interface';
 
 /**
  * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ *
+ * @part button - Any button element that is displayed inside of the toast.
+ * @part container - The element that wraps all child elements.
+ * @part header - The header text of the toast.
+ * @part message - The body text of the toast.
  */
 @Component({
   tag: 'ion-toast',
@@ -40,7 +46,7 @@ export class Toast implements ComponentInterface, OverlayInterface {
    * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
    * For more information on colors, see [theming](/docs/theming/basics).
    */
-  @Prop() color?: Color;
+  @Prop({ reflect: true }) color?: Color;
 
   /**
    * Animation to use when the toast is presented.
@@ -102,6 +108,11 @@ export class Toast implements ComponentInterface, OverlayInterface {
   @Prop() animated = true;
 
   /**
+   * Additional attributes to pass to the toast.
+   */
+  @Prop() htmlAttributes?: ToastAttributes;
+
+  /**
    * Emitted after the toast has presented.
    */
   @Event({ eventName: 'ionToastDidPresent' }) didPresent!: EventEmitter<void>;
@@ -121,7 +132,7 @@ export class Toast implements ComponentInterface, OverlayInterface {
    */
   @Event({ eventName: 'ionToastDidDismiss' }) didDismiss!: EventEmitter<OverlayEventDetail>;
 
-  constructor() {
+  connectedCallback() {
     prepareOverlay(this.el);
   }
 
@@ -158,7 +169,7 @@ export class Toast implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the toast did dismiss.
    */
   @Method()
-  onDidDismiss(): Promise<OverlayEventDetail> {
+  onDidDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionToastDidDismiss');
   }
 
@@ -166,7 +177,7 @@ export class Toast implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the toast will dismiss.
    */
   @Method()
-  onWillDismiss(): Promise<OverlayEventDetail> {
+  onWillDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionToastWillDismiss');
   }
 
@@ -258,20 +269,21 @@ export class Toast implements ComponentInterface, OverlayInterface {
       'toast-wrapper': true,
       [`toast-${this.position}`]: true
     };
+    const role = allButtons.length > 0 ? 'dialog' : 'status';
 
     return (
       <Host
+        role={role}
+        tabindex="-1"
+        {...this.htmlAttributes as any}
         style={{
           zIndex: `${60000 + this.overlayIndex}`,
         }}
-        class={{
+        class={createColorClasses(this.color, {
           [mode]: true,
-
-          ...createColorClasses(this.color),
           ...getClassMap(this.cssClass),
           'toast-translucent': this.translucent
-        }}
-        tabindex="-1"
+        })}
         onIonToastWillDismiss={this.dispatchCancelHandler}
       >
         <div class={wrapperClass}>

@@ -34,6 +34,46 @@ Any of the defined [CSS Custom Properties](#css-custom-properties) can be used t
 
 > If you are building an Ionic Angular app, the styles need to be added to a global stylesheet file. Read [Style Placement](#style-placement) in the Angular section below for more information.
 
+## Interfaces
+
+### ActionSheetButton
+
+```typescript
+interface ActionSheetButton {
+  text?: string;
+  role?: 'cancel' | 'destructive' | 'selected' | string;
+  icon?: string;
+  cssClass?: string | string[];
+  handler?: () => boolean | void | Promise<boolean | void>;
+}
+```
+
+### ActionSheetOptions
+
+```typescript
+interface ActionSheetOptions {
+  header?: string;
+  subHeader?: string;
+  cssClass?: string | string[];
+  buttons: (ActionSheetButton | string)[];
+  backdropDismiss?: boolean;
+  translucent?: boolean;
+  animated?: boolean;
+  mode?: Mode;
+  keyboardClose?: boolean;
+  id?: string;
+  htmlAttributes?: ActionSheetAttributes;
+
+  enterAnimation?: AnimationBuilder;
+  leaveAnimation?: AnimationBuilder;
+}
+```
+
+### ActionSheetAttributes
+
+```typescript
+interface ActionSheetAttributes extends JSXBase.HTMLAttributes<HTMLElement> {}
+```
 
 <!-- Auto Generated Below -->
 
@@ -94,6 +134,9 @@ export class ActionSheetExample {
       }]
     });
     await actionSheet.present();
+
+    const { role } = await actionSheet.onDidDismiss();
+    console.log('onDidDismiss resolved with role', role);
   }
 
 }
@@ -147,7 +190,10 @@ async function presentActionSheet() {
     }
   }];
   document.body.appendChild(actionSheet);
-  return actionSheet.present();
+  await actionSheet.present();
+
+  const { role } = await actionSheet.onDidDismiss();
+  console.log('onDidDismiss resolved with role', role);
 }
 ```
 
@@ -155,6 +201,59 @@ async function presentActionSheet() {
 ### React
 
 ```tsx
+/* Using with useIonActionSheet Hook */
+
+import React from 'react';
+import {
+  IonButton,
+  IonContent,
+  IonPage,
+  useIonActionSheet,
+} from '@ionic/react';
+
+const ActionSheetExample: React.FC = () => {
+  const [present, dismiss] = useIonActionSheet();
+
+  return (
+    <IonPage>
+      <IonContent>
+        <IonButton
+          expand="block"
+          onClick={() =>
+            present({
+              buttons: [{ text: 'Ok' }, { text: 'Cancel' }],
+              header: 'Action Sheet'
+            })
+          }
+        >
+          Show ActionSheet
+        </IonButton>
+        <IonButton
+          expand="block"
+          onClick={() =>
+            present([{ text: 'Ok' }, { text: 'Cancel' }], 'Action Sheet')
+          }
+        >
+          Show ActionSheet using params
+        </IonButton>
+        <IonButton
+          expand="block"
+          onClick={() => {
+            present([{ text: 'Ok' }, { text: 'Cancel' }], 'Action Sheet');
+            setTimeout(dismiss, 3000);
+          }}
+        >
+          Show ActionSheet, hide after 3 seconds
+        </IonButton>
+      </IonContent>
+    </IonPage>
+  );
+};
+```
+
+```tsx
+/* Using with IonActionSheet Component */
+
 import React, { useState } from 'react';
 import { IonActionSheet, IonContent, IonButton } from '@ionic/react';
 import { trash, share, caretForwardCircle, heart, close } from 'ionicons/icons';
@@ -263,6 +362,9 @@ export class ActionSheetExample {
       }]
     });
     await actionSheet.present();
+
+    const { role } = await actionSheet.onDidDismiss();
+    console.log('onDidDismiss resolved with role', role);
   }
 
   render() {
@@ -280,16 +382,19 @@ export class ActionSheetExample {
 
 ```html
 <template>
-  <IonVuePage :title="'Action Sheet'">
-    <ion-button @click="presentActionSheet">Show Action Sheet</ion-button>
-  </IonVuePage>
+  <ion-button @click="presentActionSheet">Show Action Sheet</ion-button>
 </template>
 
 <script>
-export default {
+import { IonButton, actionSheetController } from '@ionic/vue';
+import { defineComponent } from 'vue';
+import { caretForwardCircle, close, heart, trash, share } from 'ionicons/icons';
+
+export default defineComponent({
+  components: { IonButton },
   methods: {
-    presentActionSheet() {
-      return this.$ionic.actionSheetController
+    async presentActionSheet() {
+      const actionSheet = await actionSheetController
         .create({
           header: 'Albums',
           cssClass: 'my-custom-class',
@@ -297,46 +402,120 @@ export default {
             {
               text: 'Delete',
               role: 'destructive',
-              icon: 'trash',
+              icon: trash,
               handler: () => {
                 console.log('Delete clicked')
               },
             },
             {
               text: 'Share',
-              icon: 'share',
+              icon: share,
               handler: () => {
                 console.log('Share clicked')
               },
             },
             {
               text: 'Play (open modal)',
-              icon: 'caret-forward-circle',
+              icon: caretForwardCircle,
               handler: () => {
                 console.log('Play clicked')
               },
             },
             {
               text: 'Favorite',
-              icon: 'heart',
+              icon: heart,
               handler: () => {
                 console.log('Favorite clicked')
               },
             },
             {
               text: 'Cancel',
-              icon: 'close',
+              icon: close,
               role: 'cancel',
               handler: () => {
                 console.log('Cancel clicked')
               },
             },
           ],
-        })
-        .then(a => a.present())
+        });
+      await actionSheet.present();
+
+      const { role } = await actionSheet.onDidDismiss();
+      console.log('onDidDismiss resolved with role', role);
     },
   },
-}
+});
+</script>
+```
+
+Developers can also use this component directly in their template:
+
+```html
+<template>
+  <ion-button @click="setOpen(true)">Show Action Sheet</ion-button>
+  <ion-action-sheet
+    :is-open="isOpenRef"
+    header="Albums"
+    css-class="my-custom-class"
+    :buttons="buttons"
+    @didDismiss="setOpen(false)"
+  >
+  </ion-action-sheet>
+</template>
+
+<script>
+import { IonActionSheet, IonButton } from '@ionic/vue';
+import { defineComponent, ref } from 'vue';
+import { caretForwardCircle, close, heart, trash, share } from 'ionicons/icons';
+
+export default defineComponent({
+  components: { IonActionSheet, IonButton },
+  setup() {
+    const isOpenRef = ref(false);
+    const setOpen = (state: boolean) => isOpenRef.value = state;
+    const buttons = [
+      {
+        text: 'Delete',
+        role: 'destructive',
+        icon: trash,
+        handler: () => {
+          console.log('Delete clicked')
+        },
+      },
+      {
+        text: 'Share',
+        icon: share,
+        handler: () => {
+          console.log('Share clicked')
+        },
+      },
+      {
+        text: 'Play (open modal)',
+        icon: caretForwardCircle,
+        handler: () => {
+          console.log('Play clicked')
+        },
+      },
+      {
+        text: 'Favorite',
+        icon: heart,
+        handler: () => {
+          console.log('Favorite clicked')
+        },
+      },
+      {
+        text: 'Cancel',
+        icon: close,
+        role: 'cancel',
+        handler: () => {
+          console.log('Cancel clicked')
+        },
+      },
+    ];
+    
+    return { buttons, isOpenRef, setOpen }
+  }
+});
 </script>
 ```
 
@@ -352,6 +531,7 @@ export default {
 | `cssClass`        | `css-class`        | Additional classes to apply for custom CSS. If multiple classes are provided they should be separated by spaces.                                                                                                            | `string \| string[] \| undefined`                       | `undefined` |
 | `enterAnimation`  | --                 | Animation to use when the action sheet is presented.                                                                                                                                                                        | `((baseEl: any, opts?: any) => Animation) \| undefined` | `undefined` |
 | `header`          | `header`           | Title for the action sheet.                                                                                                                                                                                                 | `string \| undefined`                                   | `undefined` |
+| `htmlAttributes`  | --                 | Additional attributes to pass to the action sheet.                                                                                                                                                                          | `ActionSheetAttributes \| undefined`                    | `undefined` |
 | `keyboardClose`   | `keyboard-close`   | If `true`, the keyboard will be automatically dismissed when the overlay is presented.                                                                                                                                      | `boolean`                                               | `true`      |
 | `leaveAnimation`  | --                 | Animation to use when the action sheet is dismissed.                                                                                                                                                                        | `((baseEl: any, opts?: any) => Animation) \| undefined` | `undefined` |
 | `mode`            | `mode`             | The mode determines which platform styles to use.                                                                                                                                                                           | `"ios" \| "md"`                                         | `undefined` |
@@ -381,23 +561,23 @@ Type: `Promise<boolean>`
 
 
 
-### `onDidDismiss() => Promise<OverlayEventDetail<any>>`
+### `onDidDismiss<T = any>() => Promise<OverlayEventDetail<T>>`
 
 Returns a promise that resolves when the action sheet did dismiss.
 
 #### Returns
 
-Type: `Promise<OverlayEventDetail<any>>`
+Type: `Promise<OverlayEventDetail<T>>`
 
 
 
-### `onWillDismiss() => Promise<OverlayEventDetail<any>>`
+### `onWillDismiss<T = any>() => Promise<OverlayEventDetail<T>>`
 
 Returns a promise that resolves when the action sheet will dismiss.
 
 #### Returns
 
-Type: `Promise<OverlayEventDetail<any>>`
+Type: `Promise<OverlayEventDetail<T>>`
 
 
 

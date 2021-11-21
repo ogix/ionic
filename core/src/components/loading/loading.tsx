@@ -2,7 +2,7 @@ import { Component, ComponentInterface, Element, Event, EventEmitter, Host, Meth
 
 import { config } from '../../global/config';
 import { getIonMode } from '../../global/ionic-global';
-import { AnimationBuilder, OverlayEventDetail, OverlayInterface, SpinnerTypes } from '../../interface';
+import { AnimationBuilder, LoadingAttributes, OverlayEventDetail, OverlayInterface, SpinnerTypes } from '../../interface';
 import { BACKDROP, dismiss, eventMethod, prepareOverlay, present } from '../../utils/overlays';
 import { IonicSafeString, sanitizeDOMString } from '../../utils/sanitization';
 import { getClassMap } from '../../utils/theme';
@@ -27,6 +27,7 @@ export class Loading implements ComponentInterface, OverlayInterface {
   private durationTimeout: any;
 
   presented = false;
+  lastFocus?: HTMLElement;
 
   @Element() el!: HTMLIonLoadingElement;
 
@@ -92,6 +93,11 @@ export class Loading implements ComponentInterface, OverlayInterface {
   @Prop() animated = true;
 
   /**
+   * Additional attributes to pass to the loader.
+   */
+  @Prop() htmlAttributes?: LoadingAttributes;
+
+  /**
    * Emitted after the loading has presented.
    */
   @Event({ eventName: 'ionLoadingDidPresent' }) didPresent!: EventEmitter<void>;
@@ -111,7 +117,7 @@ export class Loading implements ComponentInterface, OverlayInterface {
    */
   @Event({ eventName: 'ionLoadingDidDismiss' }) didDismiss!: EventEmitter<OverlayEventDetail>;
 
-  constructor() {
+  connectedCallback() {
     prepareOverlay(this.el);
   }
 
@@ -161,7 +167,7 @@ export class Loading implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the loading did dismiss.
    */
   @Method()
-  onDidDismiss(): Promise<OverlayEventDetail> {
+  onDidDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionLoadingDidDismiss');
   }
 
@@ -169,7 +175,7 @@ export class Loading implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the loading will dismiss.
    */
   @Method()
-  onWillDismiss(): Promise<OverlayEventDetail> {
+  onWillDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionLoadingWillDismiss');
   }
 
@@ -178,15 +184,16 @@ export class Loading implements ComponentInterface, OverlayInterface {
   }
 
   render() {
-    const { message, spinner } = this;
+    const { message, spinner, htmlAttributes } = this;
     const mode = getIonMode(this);
     return (
       <Host
-        onIonBackdropTap={this.onBackdropTap}
         tabindex="-1"
+        {...htmlAttributes as any}
         style={{
           zIndex: `${40000 + this.overlayIndex}`
         }}
+        onIonBackdropTap={this.onBackdropTap}
         class={{
           ...getClassMap(this.cssClass),
           [mode]: true,
@@ -194,7 +201,10 @@ export class Loading implements ComponentInterface, OverlayInterface {
         }}
       >
         <ion-backdrop visible={this.showBackdrop} tappable={this.backdropDismiss} />
-        <div class="loading-wrapper" role="dialog">
+
+        <div tabindex="0"></div>
+
+        <div class="loading-wrapper ion-overlay-wrapper" role="dialog">
           {spinner && (
             <div class="loading-spinner">
               <ion-spinner name={spinner} aria-hidden="true" />
@@ -203,6 +213,8 @@ export class Loading implements ComponentInterface, OverlayInterface {
 
           {message && <div class="loading-content" innerHTML={sanitizeDOMString(message)}></div>}
         </div>
+
+        <div tabindex="0"></div>
       </Host>
     );
   }

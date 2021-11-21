@@ -34,6 +34,36 @@ Any of the defined [CSS Custom Properties](#css-custom-properties) can be used t
 
 > If you are building an Ionic Angular app, the styles need to be added to a global stylesheet file. Read [Style Placement](#style-placement) in the Angular section below for more information.
 
+## Interfaces
+
+### PopoverOptions
+
+```typescript
+interface PopoverOptions {
+  component: any;
+  componentProps?: { [key: string]: any };
+  showBackdrop?: boolean;
+  backdropDismiss?: boolean;
+  translucent?: boolean;
+  cssClass?: string | string[];
+  event?: Event;
+  animated?: boolean;
+
+  mode?: 'ios' | 'md';
+  keyboardClose?: boolean;
+  id?: string;
+  htmlAttributes?: PopoverAttributes;
+
+  enterAnimation?: AnimationBuilder;
+  leaveAnimation?: AnimationBuilder;
+}
+```
+
+### PopoverAttributes
+
+```typescript
+interface PopoverAttributes extends JSXBase.HTMLAttributes<HTMLElement> {}
+```
 
 <!-- Auto Generated Below -->
 
@@ -62,7 +92,10 @@ export class PopoverExample {
       event: ev,
       translucent: true
     });
-    return await popover.present();
+    await popover.present();
+  
+    const { role } = await popover.onDidDismiss();
+    console.log('onDidDismiss resolved with role', role);
   }
 }
 ```
@@ -76,6 +109,28 @@ In Angular, the CSS of a specific page is scoped only to elements of that page. 
 ### Javascript
 
 ```javascript
+class PopoverExamplePage extends HTMLElement {
+  constructor() {
+    super();
+  }
+
+  connectedCallback() {
+    this.innerHTML = `
+      <ion-content>
+        <ion-list>
+          <ion-list-header><ion-label>Ionic</ion-label></ion-list-header>
+          <ion-item button><ion-label>Item 0</ion-label></ion-item>
+          <ion-item button><ion-label>Item 1</ion-label></ion-item>
+          <ion-item button><ion-label>Item 2</ion-label></ion-item>
+          <ion-item button><ion-label>Item 3</ion-label></ion-item>
+        </ion-list>
+      </ion-content>
+    `;
+  }
+}
+
+customElements.define('popover-example-page', PopoverExamplePage);
+
 function presentPopover(ev) {
   const popover = Object.assign(document.createElement('ion-popover'), {
     component: 'popover-example-page',
@@ -84,7 +139,11 @@ function presentPopover(ev) {
     translucent: true
   });
   document.body.appendChild(popover);
-  return popover.present();
+
+  await popover.present();
+  
+  const { role } = await popover.onDidDismiss();
+  console.log('onDidDismiss resolved with role', role);
 }
 ```
 
@@ -92,22 +151,83 @@ function presentPopover(ev) {
 ### React
 
 ```tsx
+/* Using with useIonPopover Hook */
+
+import React from 'react';
+import {
+  IonButton,
+  IonContent,
+  IonItem,
+  IonList,
+  IonListHeader,
+  IonPage,
+  useIonPopover,
+} from '@ionic/react';
+
+const PopoverList: React.FC<{
+  onHide: () => void;
+}> = ({ onHide }) => (
+  <IonList>
+    <IonListHeader>Ionic</IonListHeader>
+    <IonItem button>Learn Ionic</IonItem>
+    <IonItem button>Documentation</IonItem>
+    <IonItem button>Showcase</IonItem>
+    <IonItem button>GitHub Repo</IonItem>
+    <IonItem lines="none" detail={false} button onClick={onHide}>
+      Close
+    </IonItem>
+  </IonList>
+);
+
+const PopoverExample: React.FC = () => {
+  const [present, dismiss] = useIonPopover(PopoverList, { onHide: () => dismiss() });
+  
+  return (
+    <IonPage>
+      <IonContent>
+        <IonButton
+          expand="block"
+          onClick={(e) =>
+            present({
+              event: e.nativeEvent,
+            })
+          }
+        >
+          Show Popover
+        </IonButton>
+      </IonContent>
+    </IonPage>
+  );
+};
+```
+
+```tsx
+/* Using with IonPopover Component */
+
 import React, { useState } from 'react';
 import { IonPopover, IonButton } from '@ionic/react';
 
 export const PopoverExample: React.FC = () => {
-  const [showPopover, setShowPopover] = useState(false);
+  const [popoverState, setShowPopover] = useState({ showPopover: false, event: undefined });
 
   return (
     <>
       <IonPopover
-        isOpen={showPopover}
         cssClass='my-custom-class'
-        onDidDismiss={e => setShowPopover(false)}
+        event={popoverState.event}
+        isOpen={popoverState.showPopover}
+        onDidDismiss={() => setShowPopover({ showPopover: false, event: undefined })}
       >
         <p>This is popover content</p>
       </IonPopover>
-      <IonButton onClick={() => setShowPopover(true)}>Show Popover</IonButton>
+      <IonButton onClick={
+        (e: any) => {
+          e.persist();
+          setShowPopover({ showPopover: true, event: e })
+        }}
+      >
+        Show Popover
+      </IonButton>
     </>
   );
 };
@@ -133,7 +253,10 @@ export class PopoverExample {
       event: ev,
       translucent: true
     });
-    return await popover.present();
+    await popover.present();
+  
+    const { role } = await popover.onDidDismiss();
+    console.log('onDidDismiss resolved with role', role);
   }
 
   render() {
@@ -173,6 +296,97 @@ export class PagePopover {
 ```
 
 
+### Vue
+
+```html
+<template>
+  <ion-content class="ion-padding">
+    Popover Content
+  </ion-content>
+</template>
+
+<script>
+import { IonContent } from '@ionic/vue';
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+  name: 'Popover',
+  components: { IonContent }
+});
+</script>
+```
+
+```html
+<template>
+  <ion-page>
+    <ion-content class="ion-padding">
+      <ion-button @click="openPopover">Open Popover</ion-button>
+    </ion-content>
+  </ion-page>
+</template>
+
+<script>
+import { IonButton, IonContent, IonPage, popoverController } from '@ionic/vue';
+import Popver from './popover.vue'
+
+export default {
+  components: { IonButton, IonContent, IonPage },
+  methods: {
+    async openPopover(ev: Event) {
+      const popover = await popoverController
+        .create({
+          component: Popover,
+          cssClass: 'my-custom-class',
+          event: ev,
+          translucent: true
+        })
+      await popover.present();
+  
+      const { role } = await popover.onDidDismiss();
+      console.log('onDidDismiss resolved with role', role);
+    },
+  },
+}
+</script>
+```
+
+Developers can also use this component directly in their template:
+
+```html
+<template>
+  <ion-button @click="setOpen(true, $event)">Show Popover</ion-button>
+  <ion-popover
+    :is-open="isOpenRef"
+    css-class="my-custom-class"
+    :event="event"
+    :translucent="true"
+    @didDismiss="setOpen(false)"
+  >
+    <Popover></Popover>
+  </ion-popover>
+</template>
+
+<script>
+import { IonButton, IonPopover } from '@ionic/vue';
+import { defineComponent, ref } from 'vue';
+import Popver from './popover.vue'
+
+export default defineComponent({
+  components: { IonButton, IonPopover, Popover },
+  setup() {
+    const isOpenRef = ref(false);
+    const event = ref();
+    const setOpen = (state: boolean, ev?: Event) => {
+      event.value = ev; 
+      isOpenRef.value = state;
+    }
+    return { isOpenRef, setOpen, event }
+  }
+});
+</script>
+```
+
+
 
 ## Properties
 
@@ -185,6 +399,7 @@ export class PagePopover {
 | `cssClass`               | `css-class`        | Additional classes to apply for custom CSS. If multiple classes are provided they should be separated by spaces.                                                                                                       | `string \| string[] \| undefined`                       | `undefined` |
 | `enterAnimation`         | --                 | Animation to use when the popover is presented.                                                                                                                                                                        | `((baseEl: any, opts?: any) => Animation) \| undefined` | `undefined` |
 | `event`                  | `event`            | The event to pass to the popover animation.                                                                                                                                                                            | `any`                                                   | `undefined` |
+| `htmlAttributes`         | --                 | Additional attributes to pass to the popover.                                                                                                                                                                          | `PopoverAttributes \| undefined`                        | `undefined` |
 | `keyboardClose`          | `keyboard-close`   | If `true`, the keyboard will be automatically dismissed when the overlay is presented.                                                                                                                                 | `boolean`                                               | `true`      |
 | `leaveAnimation`         | --                 | Animation to use when the popover is dismissed.                                                                                                                                                                        | `((baseEl: any, opts?: any) => Animation) \| undefined` | `undefined` |
 | `mode`                   | `mode`             | The mode determines which platform styles to use.                                                                                                                                                                      | `"ios" \| "md"`                                         | `undefined` |
@@ -214,23 +429,23 @@ Type: `Promise<boolean>`
 
 
 
-### `onDidDismiss() => Promise<OverlayEventDetail<any>>`
+### `onDidDismiss<T = any>() => Promise<OverlayEventDetail<T>>`
 
 Returns a promise that resolves when the popover did dismiss.
 
 #### Returns
 
-Type: `Promise<OverlayEventDetail<any>>`
+Type: `Promise<OverlayEventDetail<T>>`
 
 
 
-### `onWillDismiss() => Promise<OverlayEventDetail<any>>`
+### `onWillDismiss<T = any>() => Promise<OverlayEventDetail<T>>`
 
 Returns a promise that resolves when the popover will dismiss.
 
 #### Returns
 
-Type: `Promise<OverlayEventDetail<any>>`
+Type: `Promise<OverlayEventDetail<T>>`
 
 
 

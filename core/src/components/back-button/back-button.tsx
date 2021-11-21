@@ -2,12 +2,17 @@ import { Component, ComponentInterface, Element, Host, Prop, h } from '@stencil/
 
 import { config } from '../../global/config';
 import { getIonMode } from '../../global/ionic-global';
-import { Color } from '../../interface';
+import { AnimationBuilder, Color } from '../../interface';
 import { ButtonInterface } from '../../utils/element-interface';
+import { inheritAttributes } from '../../utils/helpers';
 import { createColorClasses, hostContext, openURL } from '../../utils/theme';
 
 /**
  * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
+ *
+ * @part native - The native HTML button element that wraps all child elements.
+ * @part icon - The back button icon (uses ion-icon).
+ * @part text - The back button text.
  */
 @Component({
   tag: 'ion-back-button',
@@ -18,6 +23,7 @@ import { createColorClasses, hostContext, openURL } from '../../utils/theme';
   shadow: true
 })
 export class BackButton implements ComponentInterface, ButtonInterface {
+  private inheritedAttributes: { [k: string]: any } = {};
 
   @Element() el!: HTMLElement;
 
@@ -26,7 +32,7 @@ export class BackButton implements ComponentInterface, ButtonInterface {
    * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
    * For more information on colors, see [theming](/docs/theming/basics).
    */
-  @Prop() color?: Color;
+  @Prop({ reflect: true }) color?: Color;
 
   /**
    * The url to navigate back to by default when there is no history.
@@ -36,7 +42,7 @@ export class BackButton implements ComponentInterface, ButtonInterface {
   /**
    * If `true`, the user cannot interact with the button.
    */
-  @Prop({ reflectToAttr: true }) disabled = false;
+  @Prop({ reflect: true }) disabled = false;
 
   /**
    * The icon name to use for the back button.
@@ -53,7 +59,15 @@ export class BackButton implements ComponentInterface, ButtonInterface {
    */
   @Prop() type: 'submit' | 'reset' | 'button' = 'button';
 
+  /**
+   * When using a router, it specifies the transition animation when navigating to
+   * another page.
+   */
+  @Prop() routerAnimation: AnimationBuilder | undefined;
+
   componentWillLoad() {
+    this.inheritedAttributes = inheritAttributes(this.el, ['aria-label']);
+
     if (this.defaultHref === undefined) {
       this.defaultHref = config.get('backButtonDefaultHref');
     }
@@ -99,23 +113,22 @@ export class BackButton implements ComponentInterface, ButtonInterface {
     ev.preventDefault();
 
     if (nav && await nav.canGoBack()) {
-      return nav.pop({ skipIfBusy: true });
+      return nav.pop({ animationBuilder: this.routerAnimation, skipIfBusy: true });
     }
-    return openURL(this.defaultHref, ev, 'back');
+    return openURL(this.defaultHref, ev, 'back', this.routerAnimation);
   }
 
   render() {
-    const { color, defaultHref, disabled, type, hasIconOnly, backButtonIcon, backButtonText } = this;
+    const { color, defaultHref, disabled, type, hasIconOnly, backButtonIcon, backButtonText, inheritedAttributes } = this;
     const showBackButton = defaultHref !== undefined;
     const mode = getIonMode(this);
+    const ariaLabel = inheritedAttributes['aria-label'] || backButtonText || 'back';
 
     return (
       <Host
         onClick={this.onClick}
-        class={{
-          ...createColorClasses(color),
+        class={createColorClasses(color, {
           [mode]: true,
-
           'button': true, // ion-buttons target .button
           'back-button-disabled': disabled,
           'back-button-has-icon-only': hasIconOnly,
@@ -124,12 +137,18 @@ export class BackButton implements ComponentInterface, ButtonInterface {
           'ion-activatable': true,
           'ion-focusable': true,
           'show-back-button': showBackButton
-        }}
+        })}
       >
-        <button type={type} disabled={disabled} class="button-native" aria-label={backButtonText || 'back'}>
+        <button
+          type={type}
+          disabled={disabled}
+          class="button-native"
+          part="native"
+          aria-label={ariaLabel}
+        >
           <span class="button-inner">
-            {backButtonIcon && <ion-icon icon={backButtonIcon} aria-hidden="true" lazy={false}></ion-icon>}
-            {backButtonText && <span aria-hidden="true" class="button-text">{backButtonText}</span>}
+            {backButtonIcon && <ion-icon part="icon" icon={backButtonIcon} aria-hidden="true" lazy={false}></ion-icon>}
+            {backButtonText && <span part="text" aria-hidden="true" class="button-text">{backButtonText}</span>}
           </span>
           {mode === 'md' && <ion-ripple-effect type={this.rippleType}></ion-ripple-effect>}
         </button>

@@ -1,7 +1,7 @@
 import { Component, ComponentInterface, Element, Event, EventEmitter, Host, Method, Prop, h, readTask } from '@stencil/core';
 
 import { getIonMode } from '../../global/ionic-global';
-import { ActionSheetButton, AnimationBuilder, CssClassMap, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { ActionSheetAttributes, ActionSheetButton, AnimationBuilder, CssClassMap, OverlayEventDetail, OverlayInterface } from '../../interface';
 import { Gesture } from '../../utils/gesture';
 import { createButtonActiveGesture } from '../../utils/gesture/button-active';
 import { BACKDROP, dismiss, eventMethod, isCancel, prepareOverlay, present, safeCall } from '../../utils/overlays';
@@ -26,6 +26,7 @@ import { mdLeaveAnimation } from './animations/md.leave';
 export class ActionSheet implements ComponentInterface, OverlayInterface {
 
   presented = false;
+  lastFocus?: HTMLElement;
   animation?: any;
   private wrapperEl?: HTMLElement;
   private groupEl?: HTMLElement;
@@ -90,6 +91,11 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
   @Prop() animated = true;
 
   /**
+   * Additional attributes to pass to the action sheet.
+   */
+  @Prop() htmlAttributes?: ActionSheetAttributes;
+
+  /**
    * Emitted after the alert has presented.
    */
   @Event({ eventName: 'ionActionSheetDidPresent' }) didPresent!: EventEmitter<void>;
@@ -117,7 +123,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
     return present(this, 'actionSheetEnter', iosEnterAnimation, mdEnterAnimation);
   }
 
-  constructor() {
+  connectedCallback() {
     prepareOverlay(this.el);
   }
 
@@ -139,7 +145,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the action sheet did dismiss.
    */
   @Method()
-  onDidDismiss(): Promise<OverlayEventDetail> {
+  onDidDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionActionSheetDidDismiss');
   }
 
@@ -148,7 +154,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
    *
    */
   @Method()
-  onWillDismiss(): Promise<OverlayEventDetail> {
+  onWillDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionActionSheetWillDismiss');
   }
 
@@ -197,7 +203,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
     }
   }
 
-  componentDidUnload() {
+  disconnectedCallback() {
     if (this.gesture) {
       this.gesture.destroy();
       this.gesture = undefined;
@@ -227,6 +233,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
   }
 
   render() {
+    const { htmlAttributes } = this;
     const mode = getIonMode(this);
     const allButtons = this.getButtons();
     const cancelButton = allButtons.find(b => b.role === 'cancel');
@@ -237,6 +244,7 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
         role="dialog"
         aria-modal="true"
         tabindex="-1"
+        {...htmlAttributes as any}
         style={{
           zIndex: `${20000 + this.overlayIndex}`,
         }}
@@ -250,11 +258,17 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
         onIonBackdropTap={this.onBackdropTap}
       >
         <ion-backdrop tappable={this.backdropDismiss}/>
-        <div class="action-sheet-wrapper" role="dialog" ref={el => this.wrapperEl = el}>
+
+        <div tabindex="0"></div>
+
+        <div class="action-sheet-wrapper ion-overlay-wrapper" role="dialog" ref={el => this.wrapperEl = el}>
           <div class="action-sheet-container">
             <div class="action-sheet-group" ref={el => this.groupEl = el}>
               {this.header !== undefined &&
-                <div class="action-sheet-title">
+                <div class={{
+                  'action-sheet-title': true,
+                  'action-sheet-has-sub-title': this.subHeader !== undefined
+                }}>
                   {this.header}
                   {this.subHeader && <div class="action-sheet-sub-title">{this.subHeader}</div>}
                 </div>
@@ -292,6 +306,8 @@ export class ActionSheet implements ComponentInterface, OverlayInterface {
             }
           </div>
         </div>
+
+        <div tabindex="0"></div>
       </Host>
     );
   }

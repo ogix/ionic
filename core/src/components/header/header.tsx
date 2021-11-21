@@ -1,8 +1,11 @@
 import { Component, ComponentInterface, Element, Host, Prop, h, writeTask } from '@stencil/core';
 
 import { getIonMode } from '../../global/ionic-global';
+import { inheritAttributes } from '../../utils/helpers';
+import { hostContext } from '../../utils/theme';
 
 import { cloneElement, createHeaderIndex, handleContentScroll, handleToolbarIntersection, setHeaderActive, setToolbarBackgroundOpacity } from './header.utils';
+
 /**
  * @virtualProp {"ios" | "md"} mode - The mode determines which platform styles to use.
  */
@@ -20,6 +23,7 @@ export class Header implements ComponentInterface {
   private contentScrollCallback?: any;
   private intersectionObserver?: any;
   private collapsibleMainHeader?: HTMLElement;
+  private inheritedAttributes: { [k: string]: any } = {};
 
   @Element() el!: HTMLElement;
 
@@ -41,6 +45,10 @@ export class Header implements ComponentInterface {
    */
   @Prop() translucent = false;
 
+  componentWillLoad() {
+    this.inheritedAttributes = inheritAttributes(this.el, ['role']);
+  }
+
   async componentDidLoad() {
     await this.checkCollapsibleHeader();
   }
@@ -49,7 +57,7 @@ export class Header implements ComponentInterface {
     await this.checkCollapsibleHeader();
   }
 
-  componentDidUnload() {
+  disconnectedCallback() {
     this.destroyCollapsibleHeader();
   }
 
@@ -120,7 +128,7 @@ export class Header implements ComponentInterface {
      * as well as progressively showing/hiding the main header
      * border as the top-most toolbar collapses or expands.
      */
-    const toolbarIntersection = (ev: any) => { handleToolbarIntersection(ev, mainHeaderIndex, scrollHeaderIndex); };
+    const toolbarIntersection = (ev: any) => { handleToolbarIntersection(ev, mainHeaderIndex, scrollHeaderIndex, this.scrollEl!); };
 
     this.intersectionObserver = new IntersectionObserver(toolbarIntersection, { root: contentEl, threshold: [0.25, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1] });
     this.intersectionObserver.observe(scrollHeaderIndex.toolbars[scrollHeaderIndex.toolbars.length - 1].el);
@@ -143,12 +151,16 @@ export class Header implements ComponentInterface {
   }
 
   render() {
-    const { translucent } = this;
+    const { translucent, inheritedAttributes } = this;
     const mode = getIonMode(this);
     const collapse = this.collapse || 'none';
+
+    // banner role must be at top level, so remove role if inside a menu
+    const roleType = hostContext('ion-menu', this.el) ? 'none' : 'banner';
+
     return (
       <Host
-        role="banner"
+        role={roleType}
         class={{
           [mode]: true,
 
@@ -159,6 +171,7 @@ export class Header implements ComponentInterface {
           [`header-collapse-${collapse}`]: true,
           [`header-translucent-${mode}`]: this.translucent,
         }}
+        {...inheritedAttributes}
       >
         { mode === 'ios' && translucent &&
           <div class="header-background"></div>

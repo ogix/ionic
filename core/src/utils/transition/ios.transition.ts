@@ -14,7 +14,7 @@ export const shadow = <T extends Element>(el: T): ShadowRoot | T => {
 
 const getLargeTitle = (refEl: any) => {
   const tabs = (refEl.tagName === 'ION-TABS') ? refEl : refEl.querySelector('ion-tabs');
-  const query = 'ion-header:not(.header-collapse-condense-inactive) ion-title.title-large';
+  const query = 'ion-content ion-header:not(.header-collapse-condense-inactive) ion-title.title-large';
 
   if (tabs != null) {
     const activeTab = tabs.querySelector('ion-tab:not(.tab-hidden), .ion-page:not(.ion-page-hidden)');
@@ -363,7 +363,7 @@ export const iosTransitionAnimation = (navEl: HTMLElement, opts: TransitionOptio
 
         const translucentHeader = parentHeader?.translucent;
         if (!translucentHeader) {
-          enteringToolBarBg.fromTo(OPACITY, 0.01, 1);
+          enteringToolBarBg.fromTo(OPACITY, 0.01, 'var(--opacity)');
         } else {
           enteringToolBarBg.fromTo('transform', (isRTL ? 'translateX(-100%)' : 'translateX(100%)'), 'translateX(0px)');
         }
@@ -510,7 +510,7 @@ export const iosTransitionAnimation = (navEl: HTMLElement, opts: TransitionOptio
           // should just slide out, no fading out
           const translucentHeader = parentHeader?.translucent;
           if (!translucentHeader) {
-            leavingToolBarBg.fromTo(OPACITY, 0.99, 0);
+            leavingToolBarBg.fromTo(OPACITY, 'var(--opacity)', 0);
           } else {
             leavingToolBarBg.fromTo('transform', 'translateX(0px)', (isRTL ? 'translateX(-100%)' : 'translateX(100%)'));
           }

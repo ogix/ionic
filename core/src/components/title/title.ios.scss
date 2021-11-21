@@ -5,7 +5,7 @@
 
 :host {
   @include position(0, null, null, 0);
-  @include padding(0, 90px, 0);
+  @include padding(var(--padding-top), 90px, var(--padding-bottom));
 
   position: absolute;
 
@@ -41,6 +41,7 @@
 
 :host(.title-large) {
   @include padding(0, 16px);
+  @include transform-origin(left, center);
 
   bottom: 0;
 
@@ -56,6 +57,14 @@
   text-align: start;
 }
 
+:host(.title-large.title-rtl) {
+  @include transform-origin(right, center);
+}
+
 :host(.title-large.ion-cloned-element) {
   --color: #{$text-color};
+}
+
+:host(.title-large) .toolbar-title {
+  @include transform-origin(inherit);
 }

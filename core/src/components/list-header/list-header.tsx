@@ -22,7 +22,7 @@ export class ListHeader implements ComponentInterface {
    * Default options are: `"primary"`, `"secondary"`, `"tertiary"`, `"success"`, `"warning"`, `"danger"`, `"light"`, `"medium"`, and `"dark"`.
    * For more information on colors, see [theming](/docs/theming/basics).
    */
-  @Prop() color?: Color;
+  @Prop({ reflect: true }) color?: Color;
 
   /**
    * How the bottom border should be displayed on the list header.
@@ -35,11 +35,11 @@ export class ListHeader implements ComponentInterface {
 
     return (
       <Host
-        class={{
-          ...createColorClasses(this.color),
+        class={createColorClasses(this.color, {
           [mode]: true,
           [`list-header-lines-${lines}`]: lines !== undefined,
-        }}
+        }
+        )}
       >
         <div class="list-header-inner">
           <slot></slot>

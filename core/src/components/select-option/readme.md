@@ -516,6 +516,15 @@ export class SelectOptionExample {
     </ion-select>
   </ion-item>
 </template>
+
+<script>
+import { IonItem, IonLabel, IonSelect, IonSelectOption } from '@ionic/vue';
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+  components: { IonItem, IonLabel, IonSelect, IonSelectOption }
+});
+</script>
 ```
 
 ### Customizing Options
@@ -563,16 +572,20 @@ export class SelectOptionExample {
   </ion-item>
 </template>
 
+<script>
+import { IonItem, IonLabel, IonSelect, IonSelectOption } from '@ionic/vue';
+import { defineComponent } from 'vue';
 
-<script lang="ts">
-  import { Component, Vue } from 'vue-property-decorator';
-
-  @Component()
-  export default class Example extends Vue {
-    options: any = {
+export default defineComponent({
+  components: { IonItem, IonLabel, IonSelect, IonSelectOption },
+  setup() {
+    const options: any = {
       cssClass: 'my-custom-interface'
     };
+    
+    return { options }
   }
+});
 </script>
 ```
 
@@ -630,15 +643,20 @@ To customize an individual option, set a class on the `ion-select-option`:
   </ion-item>
 </template>
 
-<script lang="ts">
-  import { Component, Vue } from 'vue-property-decorator';
+<script>
+import { IonItem, IonLabel, IonSelect, IonSelectOption } from '@ionic/vue';
+import { defineComponent } from 'vue';
 
-  @Component()
-  export default class Example extends Vue {
-    options: any = {
+export default defineComponent({
+  components: { IonItem, IonLabel, IonSelect, IonSelectOption },
+  setup() {
+    const options: any = {
       cssClass: 'my-custom-interface'
     };
+    
+    return { options }
   }
+});
 </script>
 ```
 
@@ -654,10 +672,10 @@ To customize an individual option, set a class on the `ion-select-option`:
 
 ## Properties
 
-| Property   | Attribute  | Description                                                 | Type      | Default     |
-| ---------- | ---------- | ----------------------------------------------------------- | --------- | ----------- |
-| `disabled` | `disabled` | If `true`, the user cannot interact with the select option. | `boolean` | `false`     |
-| `value`    | `value`    | The text value of the option.                               | `any`     | `undefined` |
+| Property   | Attribute  | Description                                                                                                                                                                         | Type      | Default     |
+| ---------- | ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ----------- |
+| `disabled` | `disabled` | If `true`, the user cannot interact with the select option. This property does not apply when `interface="action-sheet"` as `ion-action-sheet` does not allow for disabled buttons. | `boolean` | `false`     |
+| `value`    | `value`    | The text value of the option.                                                                                                                                                       | `any`     | `undefined` |
 
 
 ----------------------------------------------

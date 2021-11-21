@@ -1,7 +1,7 @@
 import { Component, ComponentInterface, Element, Event, EventEmitter, Host, Method, Prop, h } from '@stencil/core';
 
 import { getIonMode } from '../../global/ionic-global';
-import { AnimationBuilder, ComponentProps, ComponentRef, FrameworkDelegate, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { AnimationBuilder, ComponentProps, ComponentRef, FrameworkDelegate, OverlayEventDetail, OverlayInterface, PopoverAttributes } from '../../interface';
 import { attachComponent, detachComponent } from '../../utils/framework-delegate';
 import { BACKDROP, dismiss, eventMethod, prepareOverlay, present } from '../../utils/overlays';
 import { getClassMap } from '../../utils/theme';
@@ -28,6 +28,7 @@ export class Popover implements ComponentInterface, OverlayInterface {
   private usersElement?: HTMLElement;
 
   presented = false;
+  lastFocus?: HTMLElement;
 
   @Element() el!: HTMLIonPopoverElement;
 
@@ -96,6 +97,11 @@ export class Popover implements ComponentInterface, OverlayInterface {
   @Prop() animated = true;
 
   /**
+   * Additional attributes to pass to the popover.
+   */
+  @Prop() htmlAttributes?: PopoverAttributes;
+
+  /**
    * Emitted after the popover has presented.
    */
   @Event({ eventName: 'ionPopoverDidPresent' }) didPresent!: EventEmitter<void>;
@@ -115,7 +121,7 @@ export class Popover implements ComponentInterface, OverlayInterface {
    */
   @Event({ eventName: 'ionPopoverDidDismiss' }) didDismiss!: EventEmitter<OverlayEventDetail>;
 
-  constructor() {
+  connectedCallback() {
     prepareOverlay(this.el);
   }
 
@@ -159,7 +165,7 @@ export class Popover implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the popover did dismiss.
    */
   @Method()
-  onDidDismiss(): Promise<OverlayEventDetail> {
+  onDidDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionPopoverDidDismiss');
   }
 
@@ -167,7 +173,7 @@ export class Popover implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the popover will dismiss.
    */
   @Method()
-  onWillDismiss(): Promise<OverlayEventDetail> {
+  onWillDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionPopoverWillDismiss');
   }
 
@@ -197,12 +203,13 @@ export class Popover implements ComponentInterface, OverlayInterface {
 
   render() {
     const mode = getIonMode(this);
-    const { onLifecycle } = this;
+    const { onLifecycle, htmlAttributes } = this;
     return (
       <Host
         aria-modal="true"
         no-router
         tabindex="-1"
+        {...htmlAttributes as any}
         style={{
           zIndex: `${20000 + this.overlayIndex}`,
         }}
@@ -219,10 +226,15 @@ export class Popover implements ComponentInterface, OverlayInterface {
         onIonBackdropTap={this.onBackdropTap}
       >
         <ion-backdrop tappable={this.backdropDismiss} visible={this.showBackdrop}/>
-        <div class="popover-wrapper">
+
+        <div tabindex="0"></div>
+
+        <div class="popover-wrapper ion-overlay-wrapper">
           <div class="popover-arrow"></div>
           <div class="popover-content"></div>
         </div>
+
+        <div tabindex="0"></div>
       </Host>
     );
   }

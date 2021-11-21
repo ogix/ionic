@@ -1,6 +1,6 @@
 {
   "name": "@ionic/react",
-  "version": "5.1.1",
+  "version": "5.9.1",
   "description": "React specific wrapper for @ionic/core",
   "keywords": [
     "ionic",
@@ -21,7 +21,7 @@
   },
   "scripts": {
     "build": "npm run clean && npm run copy && npm run compile",
-    "clean": "rm -rf dist && rm -rf dist-transpiled",
+    "clean": "rimraf dist && rimraf dist-transpiled && rimraf routing",
     "compile": "npm run tsc && rollup -c",
     "release": "np --any-branch --yolo --no-release-draft",
     "lint": "tslint --project .",
@@ -29,7 +29,8 @@
     "tsc": "tsc -p .",
     "copy": "node scripts/copy.js",
     "test.spec": "jest --ci",
-    "test.treeshake": "node scripts/treeshaking.js dist/index.esm.js"
+    "test.treeshake": "node scripts/treeshaking.js dist/index.esm.js",
+    "sync": "sh ./scripts/sync.sh"
   },
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
@@ -39,35 +40,38 @@
     "css/"
   ],
   "dependencies": {
-    "@ionic/core": "5.1.1",
-    "ionicons": "^5.0.1",
+    "@ionic/core": "5.9.1",
+    "ionicons": "^5.1.2",
     "tslib": "*"
   },
   "peerDependencies": {
-    "react": "^16.8.6",
-    "react-dom": "^16.8.6"
+    "react": ">=16.8.6",
+    "react-dom": ">=16.8.6"
   },
   "devDependencies": {
-    "@types/jest": "^24.9.0",
-    "@types/node": "^12.12.14",
-    "@types/react": "^16.9.2",
+    "@rollup/plugin-node-resolve": "^8.1.0",
+    "@rollup/plugin-virtual": "^2.0.3",
+    "@testing-library/jest-dom": "^5.11.6",
+    "@testing-library/react": "^11.2.2",
+    "@testing-library/react-hooks": "^7.0.1",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^14.0.14",
+    "@types/react": "16.14.0",
     "@types/react-dom": "^16.9.0",
-    "fs-extra": "^8.1.0",
-    "jest": "^24.9.0",
-    "jest-dom": "^3.4.0",
-    "np": "^5.0.1",
+    "fs-extra": "^9.0.1",
+    "jest": "^26.6.3",
+    "np": "^6.4.0",
+    "prettier": "^2.2.0",
     "react": "^16.9.0",
     "react-dom": "^16.9.0",
-    "react-testing-library": "^7.0.0",
-    "rollup": "^1.18.0",
-    "rollup-plugin-node-resolve": "^5.2.0",
-    "rollup-plugin-sourcemaps": "^0.4.2",
-    "rollup-plugin-virtual": "^1.0.1",
-    "ts-jest": "^24.0.2",
-    "tslint": "^5.18.0",
+    "rimraf": "^3.0.2",
+    "rollup": "^2.26.4",
+    "rollup-plugin-sourcemaps": "^0.6.2",
+    "ts-jest": "^26.4.4",
+    "tslint": "^6.1.2",
     "tslint-ionic-rules": "0.0.21",
-    "tslint-react": "^4.0.0",
-    "typescript": "^3.7.2"
+    "tslint-react": "^5.0.0",
+    "typescript": "^3.9.5"
   },
   "jest": {
     "preset": "ts-jest",
@@ -75,6 +79,7 @@
       "<rootDir>/jest.setup.js"
     ],
     "testPathIgnorePatterns": [
+      "cypress",
       "node_modules",
       "dist-transpiled",
       "dist",

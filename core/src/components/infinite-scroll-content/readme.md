@@ -2,10 +2,6 @@
 
 The `ion-infinite-scroll-content` component is the default child used by the `ion-infinite-scroll`. It displays an infinite scroll spinner that looks best based on the platform and changes the look depending on the infinite scroll's state. The default spinner can be changed and text can be added by setting the `loadingSpinner` and `loadingText` properties.
 
-## React
-
-The `ion-infinite-scroll-content` component is not supported in React.
-
 <!-- Auto Generated Below -->
 
 
@@ -39,6 +35,25 @@ The `ion-infinite-scroll-content` component is not supported in React.
 ```
 
 
+### React
+
+```tsx
+import React from 'react';
+import { IonContent, IonInfiniteScroll, IonInfiniteScrollContent } from '@ionic/react';
+
+export const InfiniteScrollExample: React.FC = () => (
+  <IonContent>
+    <IonInfiniteScroll>
+      <IonInfiniteScrollContent
+        loadingSpinner="bubbles"
+        loadingText="Loading more data...">
+      </IonInfiniteScrollContent>
+    </IonInfiniteScroll>
+  </IonContent>
+);
+```
+
+
 ### Stencil
 
 ```tsx
@@ -69,15 +84,35 @@ export class InfiniteScrollContentExample {
 
 ```html
 <template>
-  <ion-content>
-    <ion-infinite-scroll>
-      <ion-infinite-scroll-content
-        loadingSpinner="bubbles"
-        loadingText="Loading more data…">
-      </ion-infinite-scroll-content>
-    </ion-infinite-scroll>
-  </ion-content>
+  <ion-page>
+    <ion-content>
+      <ion-infinite-scroll>
+        <ion-infinite-scroll-content
+          loading-spinner="bubbles"
+          loading-text="Loading more data…">
+        </ion-infinite-scroll-content>
+      </ion-infinite-scroll>
+    </ion-content>
+  </ion-page>
 </template>
+
+<script lang="ts">
+import {
+  IonContent,
+  IonInfiniteScroll,
+  IonInfiniteScrollContent,
+  IonPage
+ } from '@ionic/vue';
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+  components: {
+    IonContent,
+    IonInfiniteScroll,
+    IonInfiniteScrollContent,
+    IonPage
+  }
+});
 ```
 
 

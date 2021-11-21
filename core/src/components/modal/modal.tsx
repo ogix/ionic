@@ -2,7 +2,7 @@ import { Component, ComponentInterface, Element, Event, EventEmitter, Host, Meth
 
 import { config } from '../../global/config';
 import { getIonMode } from '../../global/ionic-global';
-import { Animation, AnimationBuilder, ComponentProps, ComponentRef, FrameworkDelegate, Gesture, OverlayEventDetail, OverlayInterface } from '../../interface';
+import { Animation, AnimationBuilder, ComponentProps, ComponentRef, FrameworkDelegate, Gesture, ModalAttributes, OverlayEventDetail, OverlayInterface } from '../../interface';
 import { attachComponent, detachComponent } from '../../utils/framework-delegate';
 import { BACKDROP, activeAnimations, dismiss, eventMethod, prepareOverlay, present } from '../../utils/overlays';
 import { getClassMap } from '../../utils/theme';
@@ -34,6 +34,7 @@ export class Modal implements ComponentInterface, OverlayInterface {
   // Whether or not modal is being dismissed via gesture
   private gestureAnimationDismissing = false;
   presented = false;
+  lastFocus?: HTMLElement;
   animation?: Animation;
 
   @Element() el!: HTMLIonModalElement;
@@ -102,6 +103,11 @@ export class Modal implements ComponentInterface, OverlayInterface {
   @Prop() presentingElement?: HTMLElement;
 
   /**
+   * Additional attributes to pass to the modal.
+   */
+  @Prop() htmlAttributes?: ModalAttributes;
+
+  /**
    * Emitted after the modal has presented.
    */
   @Event({ eventName: 'ionModalDidPresent' }) didPresent!: EventEmitter<void>;
@@ -130,7 +136,7 @@ export class Modal implements ComponentInterface, OverlayInterface {
     }
   }
 
-  constructor() {
+  connectedCallback() {
     prepareOverlay(this.el);
   }
 
@@ -227,7 +233,7 @@ export class Modal implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the modal did dismiss.
    */
   @Method()
-  onDidDismiss(): Promise<OverlayEventDetail> {
+  onDidDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionModalDidDismiss');
   }
 
@@ -235,7 +241,7 @@ export class Modal implements ComponentInterface, OverlayInterface {
    * Returns a promise that resolves when the modal will dismiss.
    */
   @Method()
-  onWillDismiss(): Promise<OverlayEventDetail> {
+  onWillDismiss<T = any>(): Promise<OverlayEventDetail<T>> {
     return eventMethod(this.el, 'ionModalWillDismiss');
   }
 
@@ -264,6 +270,7 @@ export class Modal implements ComponentInterface, OverlayInterface {
   }
 
   render() {
+    const { htmlAttributes } = this;
     const mode = getIonMode(this);
 
     return (
@@ -271,13 +278,14 @@ export class Modal implements ComponentInterface, OverlayInterface {
         no-router
         aria-modal="true"
         tabindex="-1"
+        {...htmlAttributes as any}
+        style={{
+          zIndex: `${20000 + this.overlayIndex}`,
+        }}
         class={{
           [mode]: true,
           [`modal-card`]: this.presentingElement !== undefined && mode === 'ios',
           ...getClassMap(this.cssClass)
-        }}
-        style={{
-          zIndex: `${20000 + this.overlayIndex}`,
         }}
         onIonBackdropTap={this.onBackdropTap}
         onIonDismiss={this.onDismiss}
@@ -289,11 +297,16 @@ export class Modal implements ComponentInterface, OverlayInterface {
         <ion-backdrop visible={this.showBackdrop} tappable={this.backdropDismiss}/>
 
         {mode === 'ios' && <div class="modal-shadow"></div>}
+
+        <div tabindex="0"></div>
+
         <div
           role="dialog"
-          class="modal-wrapper"
+          class="modal-wrapper ion-overlay-wrapper"
         >
         </div>
+
+        <div tabindex="0"></div>
       </Host>
     );
   }

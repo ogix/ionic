@@ -191,6 +191,29 @@ export class RadioGroupExample {
     </ion-radio-group>
   </ion-list>
 </template>
+
+<script>
+import { 
+  IonItem, 
+  IonLabel, 
+  IonList, 
+  IonListHeader, 
+  IonRadio, 
+  IonRadioGroup
+} from '@ionic/vue';
+import { defineComponent } from 'vue';
+
+export default defineComponent({
+  components: {
+    IonItem, 
+    IonLabel, 
+    IonList, 
+    IonListHeader, 
+    IonRadio, 
+    IonRadioGroup
+  }
+});
+</script>
 ```
 
 
@@ -206,9 +229,9 @@ export class RadioGroupExample {
 
 ## Events
 
-| Event       | Description                         | Type                                       |
-| ----------- | ----------------------------------- | ------------------------------------------ |
-| `ionChange` | Emitted when the value has changed. | `CustomEvent<RadioGroupChangeEventDetail>` |
+| Event       | Description                         | Type                                            |
+| ----------- | ----------------------------------- | ----------------------------------------------- |
+| `ionChange` | Emitted when the value has changed. | `CustomEvent<RadioGroupChangeEventDetail<any>>` |
 
 
 ## Dependencies

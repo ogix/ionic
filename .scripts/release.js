@@ -127,12 +127,12 @@ async function publishGithub(version, gitTag, changelog, npmTag) {
   let branch = await execa.stdout('git', ['symbolic-ref', '--short', 'HEAD']);
 
   if (!branch) {
-    branch = 'master';
+    branch = 'main';
   }
 
   await octokit.repos.createRelease({
     owner: 'ionic-team',
-    repo: 'ionic',
+    repo: 'ionic-framework',
     target_commitish: branch,
     tag_name: gitTag,
     name: version,
